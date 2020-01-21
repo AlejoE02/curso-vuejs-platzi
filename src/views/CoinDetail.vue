@@ -92,7 +92,11 @@
           </td>
           <td>{{ m.baseSymbol }} / {{ m.quoteSymbol }}</td>
           <td>
-            <px-button v-if="m.url" @custom-click="getWebSite(m)">
+            <px-button
+              :is-loading="m.isLoading || false"
+              v-if="!m.url"
+              @custom-click="getWebSite(m)"
+            >
               <slot>Obtener Link</slot>
             </px-button>
             <a v-else class="hover:underline text-green-600" target="_blanck">{{
@@ -150,9 +154,15 @@ export default {
 
   methods: {
     getWebSite(exchange) {
-      return api.getExchange(exchange.exchangeId).then(res => {
-        exchange.url = res.exchangeUrl;
-      });
+      this.$set(exchange, "isLoading", true);
+      return api
+        .getExchange(exchange.exchangeId)
+        .then(res => {
+          this.$set(exchange, "url", res.exchangeUrl);
+        })
+        .finally(() => {
+          this.$set(exchange, "isLoading", false);
+        });
     },
 
     getCoin() {
